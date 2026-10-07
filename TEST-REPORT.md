@@ -62,8 +62,11 @@ artifacts are local release files and have not been pushed to a registry.
 No live payment-provider endpoints were used. The original payment contracts,
 production certificate and original deployed server were not available for live
 verification. Configure their confirmed healthy status codes before deployment.
-Only the delivered Linux amd64 platform was built and tested. The GitHub Actions
-workflow is provided for future runs; it has not been executed on GitHub.
+Only the delivered Linux amd64 platform was built and tested. GitHub Actions
+repeats the exporter tests, image builds, container integration suite and
+dashboard validation on repository pushes and pull requests. The table above
+records local verification; current hosted results are available in
+[GitHub Actions](https://github.com/mmakrami/payment-exporter/actions/workflows/ci.yml).
 Grafana was not installed. Actual dashboard import and rendering in a running
 Grafana instance have not been verified.
 
