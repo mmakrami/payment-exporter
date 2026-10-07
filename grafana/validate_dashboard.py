@@ -53,8 +53,11 @@ def expr_test(expr, expected):
 
 
 def structural_validation():
-    saved = json.loads((ROOT / "dist/payment-exporter-grafana-dashboard.json").read_text())
+    saved = json.loads((ROOT / "grafana/payment-exporter.dashboard.json").read_text())
     assert saved == dashboard, "Regenerate the dashboard before validation"
+    delivery = ROOT / "dist/payment-exporter-grafana-dashboard.json"
+    if delivery.exists():
+        assert json.loads(delivery.read_text()) == saved, "The delivery copy differs from the dashboard"
     all_panels = list(walk(saved["panels"]))
     ids = [p["id"] for p in all_panels]
     assert len(ids) == len(set(ids))
