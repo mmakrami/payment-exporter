@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 30s
+  scrape_timeout: 25s
+
+scrape_configs:
+  - job_name: payment-exporter
+    static_configs:
+      # Use payment-exporter:9106 if Prometheus shares the Compose network.
+      # Otherwise use the reachable hostname/IP of the Docker host.
+      - targets: ["payment-exporter:9106"]
+
+rule_files:
+  - /etc/prometheus/payment-exporter-alerts.yml

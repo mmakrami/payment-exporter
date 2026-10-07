@@ -1,0 +1,38 @@
+groups:
+  - name: payment-exporter
+    rules:
+      - alert: PaymentExporterUnavailable
+        expr: up{job="payment-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Payment exporter is unavailable on {{ $labels.instance }}"
+          description: "Prometheus cannot scrape the exporter. Provider state is unknown."
+
+      - alert: PaymentProviderUnhealthy
+        expr: payment_provider_up{job="payment-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Provider {{ $labels.provider }} failed its HTTP probe"
+          description: "The probe failed or returned a status outside the configured allow-list."
+
+      - alert: PaymentProviderSlow
+        expr: payment_provider_probe_duration_seconds{job="payment-exporter"} > 5 and on (job, instance, provider) payment_provider_up{job="payment-exporter"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Provider {{ $labels.provider }} HTTP probe is slow"
+          description: "Successful probe duration has exceeded five seconds. Adjust the threshold to your service requirements."
+
+      - alert: PaymentMTRFailed
+        expr: payment_provider_mtr_success{job="payment-exporter"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MTR could not measure provider {{ $labels.provider }}"
+          description: "Check MTR capabilities, routing and destination probe responses. This does not determine HTTP health."

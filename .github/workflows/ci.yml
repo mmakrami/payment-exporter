@@ -1,0 +1,21 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test and build local fixture with the pinned Go image
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src golang:1.27.1-alpine \
+            sh -ec 'apk add --no-cache build-base; go test -race -count=1 ./...; go vet ./...; mkdir -p bin; CGO_ENABLED=0 go build -trimpath -o bin/http-fixture ./testdata/fixture'
+      - run: make docker docker-mtr
+      - run: python3 scripts/integration.py
+      - name: Verify the delivered Grafana dashboard
+        run: python3 grafana/validate_dashboard.py

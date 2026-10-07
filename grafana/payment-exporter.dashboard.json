@@ -1,0 +1,3216 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "Prometheus datasource that scrapes Payment Exporter 1.0.0",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.4.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "table",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "timeseries",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "state-timeline",
+      "name": "state-timeline",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "bargauge",
+      "name": "bargauge",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "barchart",
+      "name": "barchart",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "text",
+      "name": "text",
+      "version": ""
+    }
+  ],
+  "id": null,
+  "uid": "paystar-payment-exporter",
+  "title": "Payment Exporter / Provider Operations",
+  "description": "Payment Exporter 1.0.0 operations: freshness-aware HTTP state, observed probe success, latency, failure diagnostics, optional MTR and exporter health. Built-in panels only; no extra plugins or recording rules. HTTP status codes are not automatically treated as healthy/unhealthy.",
+  "tags": [
+    "paystar",
+    "payment-exporter",
+    "prometheus",
+    "http",
+    "operations"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "30s",
+      "1m",
+      "2m",
+      "5m",
+      "15m",
+      "30m",
+      "1h"
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(86, 211, 201, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "description": "",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### PAYMENT PROVIDER OPERATIONS\nLive HTTP health · exact status rules · select an instance or provider to investigate. **Gray / orange = unknown; not healthy.**"
+      },
+      "targets": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Scrape health",
+      "description": "وضعیت ارتباط Prometheus با exporterهای انتخاب‌شده؛ این کارت سلامت سرویس پرداخت نیست. اگر یکی از targetها scrape نشود، FAILED نمایش داده می‌شود.",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "FAILED",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "REACHABLE",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "NO TARGET DATA",
+                  "color": "#8F9CB3",
+                  "index": 2
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "NO TARGET DATA",
+                  "color": "#8F9CB3",
+                  "index": 3
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "min(max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}))",
+          "refId": "A",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Healthy providers",
+      "description": "تعداد سرویس‌های دارای نتیجهٔ تازه و سالم طبق کدهای مجاز تنظیم‌شده. دادهٔ قدیمی یا exporter قطع‌شده سالم محسوب نمی‌شود.",
+      "gridPos": {
+        "x": 4,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {}
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "NO DATA",
+                  "color": "#8F9CB3",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "NO DATA",
+                  "color": "#8F9CB3",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(((3 * (1 - (max by (job, instance, provider) (payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5)))) or ((2 + 0 * max by (job, instance, provider) (last_over_time(payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range]))) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 0)) or (1 + 0 * max by (job, instance, provider) (last_over_time(payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])))) == bool 0)",
+          "refId": "A",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Unhealthy providers",
+      "description": "تعداد probeهای تازه و ناموفق؛ شامل کد نامجاز، timeout و خطای بدنهٔ پاسخ.",
+      "gridPos": {
+        "x": 8,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {}
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "NO DATA",
+                  "color": "#8F9CB3",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "NO DATA",
+                  "color": "#8F9CB3",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(((3 * (1 - (max by (job, instance, provider) (payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5)))) or ((2 + 0 * max by (job, instance, provider) (last_over_time(payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range]))) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 0)) or (1 + 0 * max by (job, instance, provider) (last_over_time(payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])))) == bool 3)",
+          "refId": "A",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Unknown / stale",
+      "description": "سرویس‌هایی که در بازهٔ انتخابی دیده شده‌اند اما اکنون نتیجهٔ قابل اعتماد ندارند: scrape قطع، دادهٔ قدیمی، تغییر config یا اختلاف ساعت بیش از ۵ ثانیه در آینده.",
+      "gridPos": {
+        "x": 12,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {}
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "NO DATA",
+                  "color": "#8F9CB3",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "NO DATA",
+                  "color": "#8F9CB3",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum((((3 * (1 - (max by (job, instance, provider) (payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5)))) or ((2 + 0 * max by (job, instance, provider) (last_over_time(payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range]))) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 0)) or (1 + 0 * max by (job, instance, provider) (last_over_time(payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])))) > bool 0) * (((3 * (1 - (max by (job, instance, provider) (payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5)))) or ((2 + 0 * max by (job, instance, provider) (last_over_time(payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range]))) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 0)) or (1 + 0 * max by (job, instance, provider) (last_over_time(payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])))) < bool 3))",
+          "refId": "A",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Probe success · ${__range}",
+      "description": "نسبت تخمینی probeهای موفق به probeهای مشاهده‌شده در بازهٔ انتخابی؛ SLA یا درصد موفقیت تراکنش نیست. زمان‌های بدون scrape از این نسبت قابل استنتاج نیستند. بدون probe کافی مقدار NO DATA نمایش داده می‌شود.",
+      "gridPos": {
+        "x": 16,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {}
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "NO DATA",
+                  "color": "#8F9CB3",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "NO DATA",
+                  "color": "#8F9CB3",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.95
+              },
+              {
+                "color": "green",
+                "value": 0.99
+              }
+            ]
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "(clamp_max(clamp_min(1 - sum(increase(payment_provider_probe_errors_total{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])) / sum(increase(payment_provider_latency_seconds_count{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])), 0), 1) and (sum(increase(payment_provider_latency_seconds_count{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])) > 0))",
+          "refId": "A",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "p95 latency · recent",
+      "description": "صدک ۹۵ تخمینی همهٔ probeهای انتخاب‌شده در پنجرهٔ $__rate_interval؛ شامل خطاها و زمان خواندن کامل بدنه. آبی صرفاً مقدار اندازه‌گیری‌شده است، نه تأیید SLA.",
+      "gridPos": {
+        "x": 20,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {}
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "NO DATA",
+                  "color": "#8F9CB3",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "NO DATA",
+                  "color": "#8F9CB3",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(payment_provider_latency_seconds_bucket{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__rate_interval])))",
+          "refId": "A",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Provider status · failures first",
+      "description": "وضعیت اکنون با دادهٔ تازه؛ موارد مشکل‌دار بالاتر هستند. HTTP 401/404 ممکن است طبق config سالم باشند، بنابراین رنگ سلامت از State می‌آید. Probe success مربوط به بازهٔ انتخابی است. روی نام Provider کلیک کنید تا همان سرویس و instance فیلتر شود.",
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 24,
+        "h": 12
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "—",
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Provider"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Focus this provider & instance",
+                    "targetBlank": false,
+                    "url": "/d/${__dashboard.uid}?var-datasource=${datasource:percentencode}&var-job=${job:percentencode}&var-instance=${__data.fields.Instance:percentencode}&var-provider=${__data.fields.Provider:percentencode}&var-freshness=${freshness}&from=${__from}&to=${__to}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Instance"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "HEALTHY",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "STALE / MISSING",
+                        "color": "#8F9CB3",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "SCRAPE FAILED",
+                        "color": "orange",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "UNHEALTHY",
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "UNKNOWN",
+                        "color": "#8F9CB3",
+                        "index": 4
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "nan",
+                      "result": {
+                        "text": "UNKNOWN",
+                        "color": "#8F9CB3",
+                        "index": 5
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "HTTP code"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "NO RESPONSE",
+                        "color": "#8F9CB3",
+                        "index": 0
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last latency"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Deadline used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 1
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.8
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Probe success"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last completion age"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "State",
+            "desc": true
+          }
+        ],
+        "footer": {
+          "show": false,
+          "reducer": [],
+          "countRows": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "((3 * (1 - (max by (job, instance, provider) (payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5)))) or ((2 + 0 * max by (job, instance, provider) (last_over_time(payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range]))) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 0)) or (1 + 0 * max by (job, instance, provider) (last_over_time(payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range]))))",
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "(max by (job, instance, provider) (payment_provider_http_status_code{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5))",
+          "refId": "B",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "(max by (job, instance, provider) (payment_provider_probe_duration_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5))",
+          "refId": "C",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "((max by (job, instance, provider) (payment_provider_probe_duration_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5)) / on (job, instance, provider) max by (job, instance, provider) (payment_provider_probe_timeout_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}))",
+          "refId": "D",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "(clamp_max(clamp_min(1 - sum by (job, instance, provider) (increase(payment_provider_probe_errors_total{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])) / sum by (job, instance, provider) (increase(payment_provider_latency_seconds_count{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])), 0), 1) and on (job, instance, provider) (sum by (job, instance, provider) (increase(payment_provider_latency_seconds_count{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])) > 0))",
+          "refId": "E",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "time() - max by (job, instance, provider) (last_over_time(payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range]))",
+          "refId": "F",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ],
+      "maxDataPoints": 600,
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "job": true,
+              "__name__": true
+            },
+            "indexByName": {
+              "provider": 0,
+              "instance": 1,
+              "Value #A": 2,
+              "Value #B": 3,
+              "Value #C": 4,
+              "Value #D": 5,
+              "Value #E": 6,
+              "Value #F": 7
+            },
+            "renameByName": {
+              "provider": "Provider",
+              "instance": "Instance",
+              "Value #A": "State",
+              "Value #B": "HTTP code",
+              "Value #C": "Last latency",
+              "Value #D": "Deadline used",
+              "Value #E": "Probe success",
+              "Value #F": "Last completion age"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "title": "01 / AVAILABILITY & RESPONSE TIME",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 10,
+      "type": "state-timeline",
+      "title": "HTTP health history · gaps mean unknown",
+      "description": "سبز: probe موفق طبق config. قرمز: probe ناموفق. گپ: نتیجهٔ تازه و قابل اعتماد وجود ندارد؛ گپ به معنی سالم بودن نیست. برای بررسی مشکل scrape، بخش Exporter diagnostics را باز کنید.",
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "—",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "UNHEALTHY",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "HEALTHY",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "UNKNOWN",
+                  "color": "#8F9CB3",
+                  "index": 2
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "UNKNOWN",
+                  "color": "#8F9CB3",
+                  "index": 3
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 85,
+            "spanNulls": false,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "mergeValues": true,
+        "showValue": "never",
+        "rowHeight": 0.85,
+        "alignValue": "left",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "(max by (job, instance, provider) (payment_provider_up{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5))",
+          "refId": "A",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ],
+      "maxDataPoints": 1500
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "p95 probe latency",
+      "description": "صدک ۹۵ برای هر provider و instance؛ از bucketهای histogram تخمین زده می‌شود و شامل probeهای ناموفق هم هست. در نبود scrape معتبر، نمودار گپ دارد.",
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "—",
+          "mappings": [],
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "pointSize": 4,
+            "spanNulls": false,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisColorMode": "text",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by (job, instance, provider, le) (rate(payment_provider_latency_seconds_bucket{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__rate_interval]))) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1)",
+          "refId": "A",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ],
+      "maxDataPoints": 600
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Probe success · recent window",
+      "description": "نسبت موفقیت probeهای مشاهده‌شده در پنجرهٔ $__rate_interval، نه تراکنش‌ها یا SLA. اگر تلاش کافی یا scrape معتبر نباشد نمودار گپ دارد.",
+      "gridPos": {
+        "x": 12,
+        "y": 29,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "—",
+          "mappings": [],
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "pointSize": 4,
+            "spanNulls": false,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisColorMode": "text",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "max": 1,
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "((clamp_max(clamp_min(1 - sum by (job, instance, provider) (rate(payment_provider_probe_errors_total{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__rate_interval])) / sum by (job, instance, provider) (rate(payment_provider_latency_seconds_count{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__rate_interval])), 0), 1) and on (job, instance, provider) (sum by (job, instance, provider) (rate(payment_provider_latency_seconds_count{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__rate_interval])) > 0)) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1))",
+          "refId": "A",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ],
+      "maxDataPoints": 600
+    },
+    {
+      "id": 13,
+      "type": "bargauge",
+      "title": "Current latency · slowest first",
+      "description": "زمان کامل آخرین probe تازه، شامل خواندن بدنهٔ پاسخ. سرویس‌های کندتر بالاتر قرار می‌گیرند.",
+      "gridPos": {
+        "x": 0,
+        "y": 37,
+        "w": 12,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "—",
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "min": 0,
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "valueMode": "text",
+        "namePlacement": "left",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "minVizHeight": 16,
+        "maxVizHeight": 36,
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sort_desc((max by (job, instance, provider) (payment_provider_probe_duration_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5)))",
+          "refId": "A",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "bargauge",
+      "title": "HTTP deadline used",
+      "description": "نسبت زمان probe به timeout همان سرویس. ۸۰٪ به بالا هشدار نزدیک شدن به سقف و ۱۰۰٪ به بالا رسیدن به سقف است. نتیجهٔ واقعی موفقیت را از State بخوانید.",
+      "gridPos": {
+        "x": 12,
+        "y": 37,
+        "w": 12,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "—",
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "min": 0,
+          "decimals": 1,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "valueMode": "text",
+        "namePlacement": "left",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "minVizHeight": 16,
+        "maxVizHeight": 36,
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sort_desc(((max by (job, instance, provider) (payment_provider_probe_duration_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5)) / on (job, instance, provider) max by (job, instance, provider) (payment_provider_probe_timeout_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})))",
+          "refId": "A",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "row",
+      "title": "02 / FAILURE INVESTIGATION",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 44,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 16,
+      "type": "barchart",
+      "title": "Failure causes · ${__range}",
+      "description": "افزایش تخمینی شمارندهٔ خطاها در بازهٔ انتخابی؛ صفر یعنی خطایی از این دسته مشاهده نشده. status=کد نامجاز، body=پاسخ ناقص، body_too_large=حجم بیش از حد، timeout=پایان مهلت.",
+      "gridPos": {
+        "x": 0,
+        "y": 45,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "—",
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0,
+          "min": 0,
+          "custom": {
+            "axisPlacement": "auto",
+            "axisColorMode": "text",
+            "axisLabel": "Probes (estimated)",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "scaleDistribution": {
+              "type": "linear"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "reason",
+        "orientation": "horizontal",
+        "barWidth": 0.75,
+        "groupWidth": 0.8,
+        "barRadius": 0.1,
+        "showValue": "always",
+        "stacking": "none",
+        "xTickLabelMaxLength": 50,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sort_desc(sum by (reason) (increase(payment_provider_probe_errors_total{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])))",
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ],
+      "maxDataPoints": 600,
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Estimated probes"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "type": "barchart",
+      "title": "HTTP responses · ${__range}",
+      "description": "توزیع تخمینی کد پاسخ probeها. کد ۰ یعنی پاسخ قابل استفاده دریافت نشده. ۲۰۰ هم می‌تواند با خطای خواندن بدنه ناموفق باشد؛ ۴۰۱ یا ۴۰۴ هم می‌تواند طبق config سالم باشد. این نمودار به‌تنهایی سلامت را تعیین نمی‌کند.",
+      "gridPos": {
+        "x": 12,
+        "y": 45,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "—",
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0,
+          "min": 0,
+          "custom": {
+            "axisPlacement": "auto",
+            "axisColorMode": "text",
+            "axisLabel": "Probes (estimated)",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "scaleDistribution": {
+              "type": "linear"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "code",
+        "orientation": "horizontal",
+        "barWidth": 0.75,
+        "groupWidth": 0.8,
+        "barRadius": 0.1,
+        "showValue": "always",
+        "stacking": "none",
+        "xTickLabelMaxLength": 50,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sort_desc(sum by (code) (increase(payment_provider_request_total{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__range])))",
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ],
+      "maxDataPoints": 600,
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Estimated probes"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "Failure rate by cause",
+      "description": "نرخ خطاهای probe در دقیقه به تفکیک علت؛ برای تشخیص تغییر الگوی timeout، TLS، شبکه یا کد پاسخ.",
+      "gridPos": {
+        "x": 0,
+        "y": 53,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: /min",
+          "noValue": "—",
+          "mappings": [],
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "pointSize": 4,
+            "spanNulls": false,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisColorMode": "text",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (reason) (rate(payment_provider_probe_errors_total{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__rate_interval])) * 60",
+          "refId": "A",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{reason}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ],
+      "maxDataPoints": 600
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "Probe rate",
+      "description": "تعداد probe در دقیقه برای هر سرویس؛ این اعداد درخواست‌های مانیتورینگ هستند و حجم تراکنش پرداخت را نشان نمی‌دهند.",
+      "gridPos": {
+        "x": 12,
+        "y": 53,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: /min",
+          "noValue": "—",
+          "mappings": [],
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "pointSize": 4,
+            "spanNulls": false,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisColorMode": "text",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (job, instance, provider) (rate(payment_provider_latency_seconds_count{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}[$__rate_interval])) * 60",
+          "refId": "A",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{provider}} · {{instance}}",
+          "interval": "30s",
+          "exemplar": false
+        }
+      ],
+      "maxDataPoints": 600
+    },
+    {
+      "id": 24,
+      "type": "row",
+      "title": "03 / NETWORK DIAGNOSTICS · MTR OPTIONAL",
+      "collapsed": true,
+      "gridPos": {
+        "x": 0,
+        "y": 61,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [
+        {
+          "id": 20,
+          "type": "text",
+          "title": "MTR · optional network diagnostics",
+          "description": "",
+          "gridPos": {
+            "x": 0,
+            "y": 62,
+            "w": 24,
+            "h": 3
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "**No MTR data is expected when disabled.** MTR success measures whether the destination could be measured; it is independent of HTTP health. Loss and RTT gaps indicate missing/failed measurements, not zero loss. TCP checks use the URL port; ICMP may be filtered."
+          },
+          "targets": []
+        },
+        {
+          "id": 21,
+          "type": "state-timeline",
+          "title": "MTR measurement history",
+          "description": "سبز: گزارش معتبر برای IP مقصد. قرمز: اندازه‌گیری شکست خورده یا مقصد در گزارش پیدا نشده. گپ: MTR خاموش است یا دادهٔ تازه وجود ندارد. وضعیت MTR سلامت HTTP را تغییر نمی‌دهد.",
+          "gridPos": {
+            "x": 0,
+            "y": 65,
+            "w": 24,
+            "h": 7
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "noValue": "—",
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "MEASUREMENT FAILED",
+                      "color": "red",
+                      "index": 0
+                    },
+                    "1": {
+                      "text": "MEASURED",
+                      "color": "green",
+                      "index": 1
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "UNKNOWN",
+                      "color": "#8F9CB3",
+                      "index": 2
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "nan",
+                    "result": {
+                      "text": "UNKNOWN",
+                      "color": "#8F9CB3",
+                      "index": 3
+                    }
+                  }
+                }
+              ],
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "custom": {
+                "lineWidth": 0,
+                "fillOpacity": 85,
+                "spanNulls": false,
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "mergeValues": true,
+            "showValue": "never",
+            "rowHeight": 0.85,
+            "alignValue": "left",
+            "legend": {
+              "showLegend": true,
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "(max by (job, instance, provider) (payment_provider_mtr_success{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5))",
+              "refId": "A",
+              "format": "time_series",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{provider}} · {{instance}}",
+              "interval": "30s",
+              "exemplar": false
+            }
+          ],
+          "maxDataPoints": 1500
+        },
+        {
+          "id": 22,
+          "type": "timeseries",
+          "title": "Destination packet loss",
+          "description": "فقط اندازه‌گیری معتبر مقصد نمایش داده می‌شود؛ خروجی نامعتبر یا خاموش بودن MTR صفر فرض نمی‌شود. RTT میانگین واقعی Avg است. برای میزبان load-balanced ممکن است IP اندازه‌گیری‌شده با اتصال HTTP متفاوت باشد.",
+          "gridPos": {
+            "x": 0,
+            "y": 72,
+            "w": 12,
+            "h": 8
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "noValue": "—",
+              "mappings": [],
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 0.01
+                  },
+                  {
+                    "color": "red",
+                    "value": 0.05
+                  }
+                ]
+              },
+              "min": 0,
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "gradientMode": "none",
+                "showPoints": "never",
+                "pointSize": 4,
+                "spanNulls": false,
+                "axisPlacement": "auto",
+                "axisLabel": "",
+                "axisColorMode": "text",
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "dashed"
+                }
+              },
+              "max": 1,
+              "decimals": 1
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "showLegend": true,
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "max by (job, instance, provider) (payment_provider_mtr_packet_loss_ratio{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance, provider) ((max by (job, instance, provider) (payment_provider_mtr_success{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5)) == 1)",
+              "refId": "A",
+              "format": "time_series",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{provider}} · {{instance}}",
+              "interval": "30s",
+              "exemplar": false
+            }
+          ],
+          "maxDataPoints": 600
+        },
+        {
+          "id": 23,
+          "type": "timeseries",
+          "title": "Destination average RTT",
+          "description": "فقط اندازه‌گیری معتبر مقصد نمایش داده می‌شود؛ خروجی نامعتبر یا خاموش بودن MTR صفر فرض نمی‌شود. RTT میانگین واقعی Avg است. برای میزبان load-balanced ممکن است IP اندازه‌گیری‌شده با اتصال HTTP متفاوت باشد.",
+          "gridPos": {
+            "x": 12,
+            "y": 72,
+            "w": 12,
+            "h": 8
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "noValue": "—",
+              "mappings": [],
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "min": 0,
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "gradientMode": "none",
+                "showPoints": "never",
+                "pointSize": 4,
+                "spanNulls": false,
+                "axisPlacement": "auto",
+                "axisLabel": "",
+                "axisColorMode": "text",
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "showLegend": true,
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "max by (job, instance, provider) (payment_provider_mtr_avg_latency_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance, provider) ((max by (job, instance, provider) (payment_provider_mtr_success{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"}) and on (job, instance) (max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}) == 1) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) <= $freshness) and on (job, instance, provider) ((time() - max by (job, instance, provider) (payment_provider_last_probe_timestamp_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\", provider=~\"${provider:regex}\"})) >= -5)) == 1)",
+              "refId": "A",
+              "format": "time_series",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{provider}} · {{instance}}",
+              "interval": "30s",
+              "exemplar": false
+            }
+          ],
+          "maxDataPoints": 600
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "type": "row",
+      "title": "04 / EXPORTER DIAGNOSTICS",
+      "collapsed": true,
+      "gridPos": {
+        "x": 0,
+        "y": 62,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [
+        {
+          "id": 25,
+          "type": "state-timeline",
+          "title": "Exporter scrape history",
+          "description": "این تاریخچه وضعیت scrape خود exporter را نشان می‌دهد. قرمز با خرابی قطعی provider برابر نیست؛ در این وضعیت نتیجهٔ سرویس‌ها نامشخص است.",
+          "gridPos": {
+            "x": 0,
+            "y": 63,
+            "w": 12,
+            "h": 7
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "noValue": "—",
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "SCRAPE FAILED",
+                      "color": "red",
+                      "index": 0
+                    },
+                    "1": {
+                      "text": "SCRAPING",
+                      "color": "green",
+                      "index": 1
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "UNKNOWN",
+                      "color": "#8F9CB3",
+                      "index": 2
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "nan",
+                    "result": {
+                      "text": "UNKNOWN",
+                      "color": "#8F9CB3",
+                      "index": 3
+                    }
+                  }
+                }
+              ],
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "custom": {
+                "lineWidth": 0,
+                "fillOpacity": 85,
+                "spanNulls": false,
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "mergeValues": true,
+            "showValue": "never",
+            "rowHeight": 0.85,
+            "alignValue": "left",
+            "legend": {
+              "showLegend": true,
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "max by (job, instance) (up{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+              "refId": "A",
+              "format": "time_series",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{instance}}",
+              "interval": "30s",
+              "exemplar": false
+            }
+          ],
+          "maxDataPoints": 1500
+        },
+        {
+          "id": 26,
+          "type": "timeseries",
+          "title": "Prometheus scrape duration",
+          "description": "مدت scrape از دید Prometheus؛ شامل کل batch probeها و MTR فعال است. این مقدار را با scrape_timeout تنظیم‌شده مقایسه کنید.",
+          "gridPos": {
+            "x": 12,
+            "y": 63,
+            "w": 12,
+            "h": 8
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "noValue": "—",
+              "mappings": [],
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "min": 0,
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "gradientMode": "none",
+                "showPoints": "never",
+                "pointSize": 4,
+                "spanNulls": false,
+                "axisPlacement": "auto",
+                "axisLabel": "",
+                "axisColorMode": "text",
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "showLegend": true,
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "scrape_duration_seconds{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+              "refId": "A",
+              "format": "time_series",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{instance}}",
+              "interval": "30s",
+              "exemplar": false
+            }
+          ],
+          "maxDataPoints": 600
+        },
+        {
+          "id": 27,
+          "type": "timeseries",
+          "title": "Exporter CPU · one core = 100%",
+          "description": "CPU مصرف‌شده توسط فرایند exporter؛ ۱۰۰٪ یعنی یک هستهٔ کامل، نه کل ظرفیت ماشین.",
+          "gridPos": {
+            "x": 0,
+            "y": 71,
+            "w": 8,
+            "h": 8
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "noValue": "—",
+              "mappings": [],
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "min": 0,
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "gradientMode": "none",
+                "showPoints": "never",
+                "pointSize": 4,
+                "spanNulls": false,
+                "axisPlacement": "auto",
+                "axisLabel": "",
+                "axisColorMode": "text",
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "decimals": 1
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "showLegend": true,
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "rate(process_cpu_seconds_total{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__rate_interval])",
+              "refId": "A",
+              "format": "time_series",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{instance}}",
+              "interval": "30s",
+              "exemplar": false
+            }
+          ],
+          "maxDataPoints": 600
+        },
+        {
+          "id": 28,
+          "type": "timeseries",
+          "title": "Exporter resident memory",
+          "description": "حافظهٔ resident فرایند exporter؛ حافظهٔ VM یا کل کانتینر نیست.",
+          "gridPos": {
+            "x": 8,
+            "y": 71,
+            "w": 8,
+            "h": 8
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "noValue": "—",
+              "mappings": [],
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "min": 0,
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "gradientMode": "none",
+                "showPoints": "never",
+                "pointSize": 4,
+                "spanNulls": false,
+                "axisPlacement": "auto",
+                "axisLabel": "",
+                "axisColorMode": "text",
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "showLegend": true,
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "process_resident_memory_bytes{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+              "refId": "A",
+              "format": "time_series",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{instance}}",
+              "interval": "30s",
+              "exemplar": false
+            }
+          ],
+          "maxDataPoints": 600
+        },
+        {
+          "id": 29,
+          "type": "timeseries",
+          "title": "Go goroutines",
+          "description": "تعداد goroutineهای فرایند exporter؛ روند رو به رشد مداوم می‌تواند برای بررسی مصرف منابع مفید باشد.",
+          "gridPos": {
+            "x": 16,
+            "y": 71,
+            "w": 8,
+            "h": 8
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "noValue": "—",
+              "mappings": [],
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "min": 0,
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "gradientMode": "none",
+                "showPoints": "never",
+                "pointSize": 4,
+                "spanNulls": false,
+                "axisPlacement": "auto",
+                "axisLabel": "",
+                "axisColorMode": "text",
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "showLegend": true,
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "go_goroutines{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+              "refId": "A",
+              "format": "time_series",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{instance}}",
+              "interval": "30s",
+              "exemplar": false
+            }
+          ],
+          "maxDataPoints": 600
+        },
+        {
+          "id": 30,
+          "type": "table",
+          "title": "Exporter build inventory",
+          "description": "نسخه و اطلاعات build هر exporter انتخاب‌شده؛ metadata صرفاً متعلق به exporter است.",
+          "gridPos": {
+            "x": 0,
+            "y": 79,
+            "w": 24,
+            "h": 6
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "noValue": "—",
+              "mappings": [],
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "sortBy": [
+              {
+                "displayName": "Instance",
+                "desc": false
+              }
+            ]
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "max by (job, instance, version, revision, goversion) (payment_exporter_build_info{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+              "refId": "A",
+              "format": "table",
+              "instant": true,
+              "range": false,
+              "legendFormat": "{{provider}} · {{instance}}",
+              "interval": "30s",
+              "exemplar": false
+            }
+          ],
+          "maxDataPoints": 600,
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "Value": true,
+                  "__name__": true
+                },
+                "indexByName": {
+                  "instance": 0,
+                  "job": 1,
+                  "version": 2,
+                  "goversion": 3,
+                  "revision": 4
+                },
+                "renameByName": {
+                  "instance": "Instance",
+                  "job": "Job",
+                  "version": "Exporter version",
+                  "goversion": "Go version",
+                  "revision": "Revision"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "type": "row",
+      "title": "05 / HOW TO READ THIS DASHBOARD",
+      "collapsed": true,
+      "gridPos": {
+        "x": 0,
+        "y": 63,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [
+        {
+          "id": 32,
+          "type": "text",
+          "title": "Operational guide / راهنمای خواندن",
+          "description": "",
+          "gridPos": {
+            "x": 0,
+            "y": 64,
+            "w": 24,
+            "h": 11
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### Read the current state first\n- **HEALTHY**: a fresh probe completed and returned one of the provider's configured status codes.\n- **UNHEALTHY**: a fresh probe failed: unexpected status, timeout, TLS/network error, truncated or oversized body.\n- **SCRAPE FAILED**: Prometheus cannot collect from the exporter. The provider state is unknown.\n- **STALE / MISSING**: no trustworthy current result for a provider observed in the selected time range. This may include removed configuration entries.\n\n### Interpret the numbers correctly\n**Probe success** describes observed monitoring attempts, not transactions, business success, full uptime or an SLA. Missing scrapes are unknown. `increase()` extrapolates, so window counts are estimates. p95 is an estimate from histogram buckets and includes failed probes. HTTP 401/404 may be healthy; HTTP 200 with a body timeout is unhealthy. MTR is optional and independent.\n\n### Filters & investigation\nSelect the Prometheus datasource, exporter job, instance and provider. Click a provider name in the status table to focus that provider and instance. **Freshness limit** defaults to 180 seconds; increase it for intentionally slow scrape intervals. A completion timestamp more than 5 seconds in the future is treated as untrustworthy. Jobs/providers are discovered from metrics; the exporter must have been scraped successfully at least once in the selected period.\n\n**راهنمای کوتاه:** ابتدا State و Scrape health را بخوانید. دادهٔ قدیمی یا گپ به معنی سالم بودن نیست. سپس deadline، کد پاسخ و علت خطا را بررسی کنید. بخش‌های MTR و منابع exporter پیش‌فرض جمع شده‌اند؛ برای جزئیات بازشان کنید. Refresh فقط Prometheus را query می‌کند و مستقیماً probe جدید ایجاد نمی‌کند."
+          },
+          "targets": []
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Prometheus",
+        "type": "datasource",
+        "query": "prometheus",
+        "refresh": 1,
+        "hide": 0,
+        "multi": false,
+        "includeAll": false,
+        "options": [],
+        "current": {
+          "text": "Prometheus",
+          "value": "${DS_PROMETHEUS}"
+        }
+      },
+      {
+        "name": "job",
+        "label": "Exporter job",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "query": "label_values(payment_exporter_build_info, job)",
+          "refId": "VariableQuery"
+        },
+        "definition": "label_values(payment_exporter_build_info, job)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": false,
+        "includeAll": false,
+        "options": [],
+        "current": {
+          "text": "payment-exporter",
+          "value": "payment-exporter"
+        },
+        "hide": 0,
+        "skipUrlSync": false
+      },
+      {
+        "name": "instance",
+        "label": "Instance",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "query": "label_values(up{job=~\"${job:regex}\"}, instance)",
+          "refId": "VariableQuery"
+        },
+        "definition": "label_values(up{job=~\"${job:regex}\"}, instance)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "options": [],
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 0,
+        "skipUrlSync": false,
+        "allValue": ".*"
+      },
+      {
+        "name": "provider",
+        "label": "Provider",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "query": "label_values(payment_provider_up{job=~\"${job:regex}\",instance=~\"${instance:regex}\"}, provider)",
+          "refId": "VariableQuery"
+        },
+        "definition": "label_values(payment_provider_up{job=~\"${job:regex}\",instance=~\"${instance:regex}\"}, provider)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "options": [],
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 0,
+        "skipUrlSync": false,
+        "allValue": ".*"
+      },
+      {
+        "name": "freshness",
+        "label": "Freshness limit (s)",
+        "type": "custom",
+        "query": "60,120,180,300,600",
+        "hide": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {
+          "text": "180",
+          "value": "180"
+        },
+        "options": [
+          {
+            "text": "60",
+            "value": "60",
+            "selected": false
+          },
+          {
+            "text": "120",
+            "value": "120",
+            "selected": false
+          },
+          {
+            "text": "180",
+            "value": "180",
+            "selected": true
+          },
+          {
+            "text": "300",
+            "value": "300",
+            "selected": false
+          },
+          {
+            "text": "600",
+            "value": "600",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  }
+}

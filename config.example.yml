@@ -1,0 +1,45 @@
+# Copy to config.yml and replace the URLs with your own probe endpoints.
+# Every /metrics scrape probes all configured providers. No background requests.
+global:
+  timeout: 10s
+  max_concurrency: 16
+  max_response_body_bytes: 1048576
+
+providers:
+  - name: ExampleHealth
+    url: https://example.com/
+    method: GET
+    expected_status_codes: [200]
+    ip_protocol: ip4
+    follow_redirects: false
+
+  # Example POST probe: enable this block for your own service.
+  # - name: ExampleToken
+  #   url: https://payments.example.com/token
+  #   method: POST
+  #   headers:
+  #     Content-Type: application/json
+  #     Accept: application/json
+  #   body: '{}'
+  #   expected_status_codes: [401]
+  #   timeout: 8s
+
+  # Headers containing credentials can be read from environment variables.
+  # headers_from_env:
+  #   Authorization: PROVIDER_AUTHORIZATION
+
+  # Optional TLS / mTLS. Paths are relative to this file unless absolute.
+  # tls:
+  #   insecure_skip_verify: false
+  #   ca_file: /run/secrets/provider-ca.pem
+  #   cert_file: /run/secrets/provider-cert.pem
+  #   key_file: /run/secrets/provider-key.pem
+  #   server_name: provider.example.com
+  # Combined cert+key PEM: set cert_file and key_file to the same path.
+
+  # Optional MTR: requires the -mtr image and NET_RAW. Disabled by default.
+  # mtr:
+  #   enabled: true
+  #   protocol: tcp  # tcp uses the URL port; icmp checks ICMP reachability
+  #   cycles: 3
+  #   timeout: 15s

@@ -1,0 +1,28 @@
+services:
+  payment-exporter:
+    image: paystar/payment-exporter:1.0.0
+    build:
+      context: .
+      target: default
+    restart: unless-stopped
+    ports:
+      - "9106:9106"
+    volumes:
+      - type: bind
+        source: ./config.yml
+        target: /etc/payment-exporter/config.yml
+        read_only: true
+        bind:
+          create_host_path: false
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 256m
+    cpus: 1.0
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

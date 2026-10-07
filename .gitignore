@@ -1,0 +1,11 @@
+/bin/
+/dist/
+/config.yml
+/secrets/
+/.env
+*.pem
+*.key
+*.crt
+coverage.out
+__pycache__/
+/GROUP-MESSAGE.fa.md
