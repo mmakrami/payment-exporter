@@ -19,3 +19,5 @@ jobs:
       - run: python3 scripts/integration.py
       - name: Verify the delivered Grafana dashboard
         run: python3 grafana/validate_dashboard.py
+      - name: Verify alert rules and outage scenarios
+        run: python3 scripts/validate_alerts.py

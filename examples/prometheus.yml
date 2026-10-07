@@ -2,6 +2,12 @@ global:
   scrape_interval: 30s
   scrape_timeout: 25s
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        # Replace with your existing Alertmanager's reachable hostname/IP.
+        - targets: ["alertmanager:9093"]
+
 scrape_configs:
   - job_name: payment-exporter
     static_configs:

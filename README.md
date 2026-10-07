@@ -259,6 +259,13 @@ sum by (job, instance, provider) (rate(payment_provider_probe_errors_total[5m]))
 
 See `examples/prometheus.yml`, `examples/alerts.yml` and `MIGRATION.md`.
 
+The bundled rules alert on five consecutive failed scrapes, >60% observed
+failure rate for 5m and p50 >3s for 5m, all critical and excluding Sunny.
+Exporter outage and optional MTR failure rules are also included. See
+[`examples/ALERTING.md`](examples/ALERTING.md) for loading/reloading rules and
+connecting your existing Alertmanager. Provider rules support any exporter job
+name and retain instance identity. The five-scrape rule assumes a 30s interval.
+
 ## Grafana dashboard
 
 Import [`grafana/payment-exporter.dashboard.json`](grafana/payment-exporter.dashboard.json)

@@ -13,7 +13,7 @@ Engine 29.1.3. Default exporter port: **9106**.
 | Standard and MTR image builds | PASS |
 | `scripts/integration.py` against actual release images | PASS: 11 result groups |
 | Both Compose configurations | PASS: `docker compose config -q` |
-| Prometheus config / 4 alert rules | PASS: official `promtool` from Prometheus v3.15.0 |
+| Prometheus config / 5 alert rules | PASS: official `promtool` from Prometheus v3.15.0; alert state tests cover timing, recovery, missing scrapes, Sunny exclusion and per-instance latency |
 | HTTP and MTR metric exposition lint | PASS: `promtool check metrics` |
 | Live Compose service on 9106 | PASS: Docker healthy; health endpoint returns 200 |
 | Live non-payment example.com probe | PASS: HTTP 200; provider up=1 |

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1
+
+- Added tested provider alert rules matching the previous five-scrape, 60% error
+  rate and p50 >3s thresholds, plus exporter/MTR alerts and Alertmanager guidance.
+- Added promtool firing/recovery tests for 12 alerting scenarios.
+- Refreshed runtime bundle; exporter images remain the tested 1.0.0 images.
+
 ## 1.0.0
 
 - Configurable HTTP providers and exact healthy status codes in strict YAML.

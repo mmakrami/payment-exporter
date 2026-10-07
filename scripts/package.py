@@ -42,11 +42,13 @@ def sha256(path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", default="1.0.0")
+    parser.add_argument("--release-version", help="Bundle version; defaults to the unchanged exporter image version")
     args = parser.parse_args()
     destination = ROOT / "dist"
     destination.mkdir(exist_ok=True)
-    prefix = "payment-exporter-" + args.version
-    images = destination / (prefix + "-images.tar.gz")
+    release_version = args.release_version or args.version
+    prefix = "payment-exporter-" + release_version
+    images = destination / ("payment-exporter-" + args.version + "-images.tar.gz")
     required = [images, destination / "integration-report.json", destination / "unit-tests.txt", ROOT / "bin/payment-exporter"]
     for path in required:
         if not path.exists():
@@ -71,7 +73,8 @@ def main():
         if saved_ids != tested_ids:
             raise SystemExit("Saved image archive does not match the verified image IDs")
     metadata = {
-        "version": args.version,
+        "version": release_version,
+        "exporter_version": args.version,
         "platform": "linux/amd64",
         "port": 9106,
         "images": [{"tags": image["RepoTags"], "id": image["Id"], "size_bytes": image["Size"], "user": image["Config"]["User"]} for image in image_info],
@@ -110,7 +113,7 @@ def main():
     # Small operator bundle: no source, build tools, test fixtures or local logs.
     runtime_entries = [
         "compose.yaml", "compose.mtr.yaml", "config.example.yml",
-        "README.md", "README.fa.md", "examples/prometheus.yml", "examples/alerts.yml",
+        "README.md", "README.fa.md", "examples/prometheus.yml", "examples/alerts.yml", "examples/ALERTING.md",
         "grafana/payment-exporter.dashboard.json", "grafana/README.md",
     ]
     quickstart = destination / (prefix + "-quickstart.tar.gz")

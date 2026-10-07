@@ -1,0 +1,475 @@
+{
+  "rule_files": [
+    "../examples/alerts.yml"
+  ],
+  "evaluation_interval": "30s",
+  "tests": [
+    {
+      "name": "five observed failures fire at the fifth and recover",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Test\"}",
+          "values": "0 0 0 0 0 1 1"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "1m30s",
+          "alertname": "PaymentProviderDown5x",
+          "exp_alerts": []
+        },
+        {
+          "eval_time": "2m",
+          "alertname": "PaymentProviderDown5x",
+          "exp_alerts": [
+            {
+              "exp_labels": {
+                "job": "payment-provider-exporter-v2",
+                "instance": "vm-a:9106",
+                "severity": "critical",
+                "provider": "Test"
+              },
+              "exp_annotations": {
+                "summary": "Test down 5 consecutive scrapes",
+                "description": "Payment provider Test on vm-a:9106 failed at least 5 consecutive observed scrapes at a 30s scrape interval."
+              }
+            }
+          ]
+        },
+        {
+          "eval_time": "2m30s",
+          "alertname": "PaymentProviderDown5x",
+          "exp_alerts": []
+        }
+      ]
+    },
+    {
+      "name": "a successful probe interrupts consecutive failure",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Test\"}",
+          "values": "0 0 1 0 0 0"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "2m",
+          "alertname": "PaymentProviderDown5x",
+          "exp_alerts": []
+        },
+        {
+          "eval_time": "2m30s",
+          "alertname": "PaymentProviderDown5x",
+          "exp_alerts": []
+        }
+      ]
+    },
+    {
+      "name": "missing scrapes cannot count as failures",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Test\"}",
+          "values": "0 0 _ 0 0"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "2m",
+          "alertname": "PaymentProviderDown5x",
+          "exp_alerts": []
+        }
+      ]
+    },
+    {
+      "name": "Sunny excluded from provider failure alerts",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Sunny\"}",
+          "values": "0+0x30"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "2m",
+          "alertname": "PaymentProviderDown5x",
+          "exp_alerts": []
+        },
+        {
+          "eval_time": "6m",
+          "alertname": "PaymentProviderErrorRateHigh",
+          "exp_alerts": []
+        }
+      ]
+    },
+    {
+      "name": "exporter loss suppresses provider failures and alerts separately",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1 0+0x30"
+        },
+        {
+          "series": "payment_exporter_build_info{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",version=\"1.0.0\"}",
+          "values": "1 stale _ _ _ _"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Test\"}",
+          "values": "0+0x30"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "2m",
+          "alertname": "PaymentProviderDown5x",
+          "exp_alerts": []
+        },
+        {
+          "eval_time": "6m",
+          "alertname": "PaymentProviderErrorRateHigh",
+          "exp_alerts": []
+        },
+        {
+          "eval_time": "2m",
+          "alertname": "PaymentExporterUnavailable",
+          "exp_alerts": []
+        },
+        {
+          "eval_time": "2m30s",
+          "alertname": "PaymentExporterUnavailable",
+          "exp_alerts": [
+            {
+              "exp_labels": {
+                "job": "payment-provider-exporter-v2",
+                "instance": "vm-a:9106",
+                "severity": "critical"
+              },
+              "exp_annotations": {
+                "summary": "Payment exporter is unavailable on vm-a:9106",
+                "description": "Prometheus cannot scrape a payment exporter observed within the last 24 hours. Provider state is unknown."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error rate waits for five minutes and clears on recovery",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Test\"}",
+          "values": "0+0x10 1+0x15"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "4m30s",
+          "alertname": "PaymentProviderErrorRateHigh",
+          "exp_alerts": []
+        },
+        {
+          "eval_time": "5m",
+          "alertname": "PaymentProviderErrorRateHigh",
+          "exp_alerts": [
+            {
+              "exp_labels": {
+                "job": "payment-provider-exporter-v2",
+                "instance": "vm-a:9106",
+                "severity": "critical",
+                "provider": "Test"
+              },
+              "exp_annotations": {
+                "summary": "Test error-rate > 60% (5m)",
+                "description": "More than 60% of observed HTTP probes to Test on vm-a:9106 failed in the rolling 5-minute window, and this condition persisted for 5 minutes. Missing scrapes are unknown."
+              }
+            }
+          ]
+        },
+        {
+          "eval_time": "7m30s",
+          "alertname": "PaymentProviderErrorRateHigh",
+          "exp_alerts": []
+        }
+      ]
+    },
+    {
+      "name": "exactly sixty percent is not above threshold",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Test\"}",
+          "values": "1 1 1 1 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 1 1 1 1"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "9m30s",
+          "alertname": "PaymentProviderErrorRateHigh",
+          "exp_alerts": []
+        }
+      ]
+    },
+    {
+      "name": "removed providers do not keep old failure alerts",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Test\"}",
+          "values": "0+0x12 stale _ _ _ _ _ _"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "5m",
+          "alertname": "PaymentProviderErrorRateHigh",
+          "exp_alerts": [
+            {
+              "exp_labels": {
+                "job": "payment-provider-exporter-v2",
+                "instance": "vm-a:9106",
+                "severity": "critical",
+                "provider": "Test"
+              },
+              "exp_annotations": {
+                "summary": "Test error-rate > 60% (5m)",
+                "description": "More than 60% of observed HTTP probes to Test on vm-a:9106 failed in the rolling 5-minute window, and this condition persisted for 5 minutes. Missing scrapes are unknown."
+              }
+            }
+          ]
+        },
+        {
+          "eval_time": "7m",
+          "alertname": "PaymentProviderErrorRateHigh",
+          "exp_alerts": []
+        },
+        {
+          "eval_time": "7m",
+          "alertname": "PaymentProviderDown5x",
+          "exp_alerts": []
+        }
+      ]
+    },
+    {
+      "name": "optional MTR is independent and honors for duration",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_mtr_success{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Test\"}",
+          "values": "0+0x10 1+0x10"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "4m30s",
+          "alertname": "PaymentMTRFailed",
+          "exp_alerts": []
+        },
+        {
+          "eval_time": "5m",
+          "alertname": "PaymentMTRFailed",
+          "exp_alerts": [
+            {
+              "exp_labels": {
+                "job": "payment-provider-exporter-v2",
+                "instance": "vm-a:9106",
+                "severity": "warning",
+                "provider": "Test"
+              },
+              "exp_annotations": {
+                "summary": "MTR could not measure provider Test",
+                "description": "Check MTR capabilities, routing and destination probe responses. This does not determine HTTP health."
+              }
+            }
+          ]
+        },
+        {
+          "eval_time": "5m30s",
+          "alertname": "PaymentMTRFailed",
+          "exp_alerts": []
+        }
+      ]
+    },
+    {
+      "name": "disabled MTR produces no false alert",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "6m",
+          "alertname": "PaymentMTRFailed",
+          "exp_alerts": []
+        }
+      ]
+    },
+    {
+      "name": "median latency preserves instance identity and pending duration",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "up{instance=\"vm-b:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Test\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-b:9106\",job=\"payment-provider-exporter-v2\",provider=\"Test\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",le=\"0.1\",provider=\"Test\"}",
+          "values": "0+0x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",le=\"2.5\",provider=\"Test\"}",
+          "values": "0+0x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",le=\"5\",provider=\"Test\"}",
+          "values": "0+10x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",le=\"+Inf\",provider=\"Test\"}",
+          "values": "0+10x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-b:9106\",job=\"payment-provider-exporter-v2\",le=\"0.1\",provider=\"Test\"}",
+          "values": "0+10x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-b:9106\",job=\"payment-provider-exporter-v2\",le=\"2.5\",provider=\"Test\"}",
+          "values": "0+10x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-b:9106\",job=\"payment-provider-exporter-v2\",le=\"5\",provider=\"Test\"}",
+          "values": "0+10x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-b:9106\",job=\"payment-provider-exporter-v2\",le=\"+Inf\",provider=\"Test\"}",
+          "values": "0+10x30"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "5m",
+          "alertname": "PaymentProviderHighLatency",
+          "exp_alerts": []
+        },
+        {
+          "eval_time": "5m30s",
+          "alertname": "PaymentProviderHighLatency",
+          "exp_alerts": [
+            {
+              "exp_labels": {
+                "job": "payment-provider-exporter-v2",
+                "instance": "vm-a:9106",
+                "severity": "critical",
+                "provider": "Test"
+              },
+              "exp_annotations": {
+                "summary": "Test high latency (p50 > 3s)",
+                "description": "The estimated median HTTP probe duration for Test on vm-a:9106 exceeded 3 seconds for 5 minutes. The histogram includes successful and failed probes."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "latency threshold boundary and Sunny exclusion",
+      "interval": "30s",
+      "input_series": [
+        {
+          "series": "up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Test\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_up{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",provider=\"Sunny\"}",
+          "values": "1+0x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",le=\"1\",provider=\"Test\"}",
+          "values": "0+0x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",le=\"5\",provider=\"Test\"}",
+          "values": "0+10x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",le=\"+Inf\",provider=\"Test\"}",
+          "values": "0+10x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",le=\"2.5\",provider=\"Sunny\"}",
+          "values": "0+0x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",le=\"5\",provider=\"Sunny\"}",
+          "values": "0+10x30"
+        },
+        {
+          "series": "payment_provider_latency_seconds_bucket{instance=\"vm-a:9106\",job=\"payment-provider-exporter-v2\",le=\"+Inf\",provider=\"Sunny\"}",
+          "values": "0+10x30"
+        }
+      ],
+      "alert_rule_test": [
+        {
+          "eval_time": "6m",
+          "alertname": "PaymentProviderHighLatency",
+          "exp_alerts": []
+        }
+      ]
+    }
+  ]
+}

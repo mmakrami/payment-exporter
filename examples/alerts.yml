@@ -1,38 +1,72 @@
+# Provider thresholds preserve the previous production expressions:
+# five failed scrapes; error fraction >60% for 5m; p50 >3s for 5m.
+# All three provider alerts exclude Sunny. Remove that matcher to include it.
+# The five-scrape window assumes scrape_interval: 30s. Missing scrapes do not
+# count as provider failures. All provider identities include job + instance.
 groups:
-  - name: payment-exporter
+  - name: payment_providers
+    interval: 30s
     rules:
-      - alert: PaymentExporterUnavailable
-        expr: up{job="payment-exporter"} == 0
-        for: 2m
+      - alert: PaymentProviderDown5x
+        expr: |
+          (max_over_time(payment_provider_up{provider!="Sunny"}[2m30s]) == 0)
+          and (count_over_time(payment_provider_up{provider!="Sunny"}[2m30s]) >= 5)
+          and (payment_provider_up{provider!="Sunny"} == 0)
+          and on (job, instance) (up == 1)
         labels:
           severity: critical
         annotations:
-          summary: "Payment exporter is unavailable on {{ $labels.instance }}"
-          description: "Prometheus cannot scrape the exporter. Provider state is unknown."
+          summary: '{{ $labels.provider }} down 5 consecutive scrapes'
+          description: 'Payment provider {{ $labels.provider }} on {{ $labels.instance }} failed at least 5 consecutive observed scrapes at a 30s scrape interval.'
 
-      - alert: PaymentProviderUnhealthy
-        expr: payment_provider_up{job="payment-exporter"} == 0
-        for: 2m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Provider {{ $labels.provider }} failed its HTTP probe"
-          description: "The probe failed or returned a status outside the configured allow-list."
-
-      - alert: PaymentProviderSlow
-        expr: payment_provider_probe_duration_seconds{job="payment-exporter"} > 5 and on (job, instance, provider) payment_provider_up{job="payment-exporter"} == 1
+      - alert: PaymentProviderErrorRateHigh
+        expr: |
+          (1 - avg_over_time(payment_provider_up{provider!="Sunny"}[5m])) > 0.6
+          and on (job, instance, provider) payment_provider_up
+          and on (job, instance) (up == 1)
         for: 5m
         labels:
-          severity: warning
+          severity: critical
         annotations:
-          summary: "Provider {{ $labels.provider }} HTTP probe is slow"
-          description: "Successful probe duration has exceeded five seconds. Adjust the threshold to your service requirements."
+          summary: '{{ $labels.provider }} error-rate > 60% (5m)'
+          description: 'More than 60% of observed HTTP probes to {{ $labels.provider }} on {{ $labels.instance }} failed in the rolling 5-minute window, and this condition persisted for 5 minutes. Missing scrapes are unknown.'
+
+      - alert: PaymentProviderHighLatency
+        expr: |
+          histogram_quantile(
+            0.50,
+            sum by (job, instance, provider, le) (
+              rate(payment_provider_latency_seconds_bucket{provider!="Sunny"}[5m])
+            )
+          ) > 3
+          and on (job, instance, provider) payment_provider_up
+          and on (job, instance) (up == 1)
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: '{{ $labels.provider }} high latency (p50 > 3s)'
+          description: 'The estimated median HTTP probe duration for {{ $labels.provider }} on {{ $labels.instance }} exceeded 3 seconds for 5 minutes. The histogram includes successful and failed probes.'
+
+      - alert: PaymentExporterUnavailable
+        expr: |
+          (up == 0)
+          and on (job, instance)
+          max by (job, instance) (last_over_time(payment_exporter_build_info[1d]))
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Payment exporter is unavailable on {{ $labels.instance }}'
+          description: 'Prometheus cannot scrape a payment exporter observed within the last 24 hours. Provider state is unknown.'
 
       - alert: PaymentMTRFailed
-        expr: payment_provider_mtr_success{job="payment-exporter"} == 0
+        expr: |
+          (payment_provider_mtr_success == 0)
+          and on (job, instance) (up == 1)
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "MTR could not measure provider {{ $labels.provider }}"
-          description: "Check MTR capabilities, routing and destination probe responses. This does not determine HTTP health."
+          summary: 'MTR could not measure provider {{ $labels.provider }}'
+          description: 'Check MTR capabilities, routing and destination probe responses. This does not determine HTTP health.'
